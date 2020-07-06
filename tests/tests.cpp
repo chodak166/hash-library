@@ -5,16 +5,16 @@
 //
 
 // simple test suite for hash-library
-// g++ tests.cpp ../crc32.cpp ../md5.cpp ../sha1.cpp ../sha256.cpp ../sha3.cpp -o tests && ./tests
+// g++ tests.cpp ../src/*.cpp -I ../include -o tests && ./tests
 
-#include "../crc32.h"
-#include "../md5.h"
-#include "../sha1.h"
-#include "../sha256.h"
-#include "../sha3.h"
-#include "../keccak.h"
+#include "hash-library/crc32.h"
+#include "hash-library/md5.h"
+#include "hash-library/sha1.h"
+#include "hash-library/sha256.h"
+#include "hash-library/sha3.h"
+#include "hash-library/keccak.h"
 
-#include "../hmac.h"
+#include "hash-library/hmac.h"
 
 #include <string>
 #include <vector>

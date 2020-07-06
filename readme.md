@@ -1,5 +1,7 @@
 # Portable C++ Hashing Library
 
+**FORK NOTE:** This project has been reorganized to be used as a sub-module.
+
 This is a mirror of my library hosted at https://create.stephan-brumme.com/hash-library/
 
 In a nutshell:

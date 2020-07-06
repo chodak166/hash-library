@@ -1,10 +1,10 @@
 // //////////////////////////////////////////////////////////
-// sha3.cpp
+// keccak.cpp
 // Copyright (c) 2014,2015 Stephan Brumme. All rights reserved.
 // see http://create.stephan-brumme.com/disclaimer.html
 //
 
-#include "sha3.h"
+#include "hash-library/keccak.h"
 
 // big endian architectures need #define __BYTE_ORDER __BIG_ENDIAN
 #ifndef _MSC_VER
@@ -13,7 +13,7 @@
 
 
 /// same as reset()
-SHA3::SHA3(Bits bits)
+Keccak::Keccak(Bits bits)
 : m_blockSize(200 - 2 * (bits / 8)),
   m_bits(bits)
 {
@@ -22,7 +22,7 @@ SHA3::SHA3(Bits bits)
 
 
 /// restart
-void SHA3::reset()
+void Keccak::reset()
 {
   for (size_t i = 0; i < StateSize; i++)
     m_hash[i] = 0;
@@ -35,8 +35,8 @@ void SHA3::reset()
 /// constants and local helper functions
 namespace
 {
-  const unsigned int Rounds = 24;
-  const uint64_t XorMasks[Rounds] =
+  const unsigned int KeccakRounds = 24;
+  const uint64_t XorMasks[KeccakRounds] =
   {
     0x0000000000000001ULL, 0x0000000000008082ULL, 0x800000000000808aULL,
     0x8000000080008000ULL, 0x000000000000808bULL, 0x0000000080000001ULL,
@@ -87,7 +87,7 @@ namespace
 
 
 /// process a full block
-void SHA3::processBlock(const void* data)
+void Keccak::processBlock(const void* data)
 {
 #if defined(__BYTE_ORDER) && (__BYTE_ORDER != 0) && (__BYTE_ORDER == __BIG_ENDIAN)
 #define LITTLEENDIAN(x) swap(x)
@@ -101,7 +101,7 @@ void SHA3::processBlock(const void* data)
     m_hash[i] ^= LITTLEENDIAN(data64[i]);
 
   // re-compute state
-  for (unsigned int round = 0; round < Rounds; round++)
+  for (unsigned int round = 0; round < KeccakRounds; round++)
   {
     // Theta
     uint64_t coefficients[5];
@@ -169,11 +169,10 @@ void SHA3::processBlock(const void* data)
 
 
 /// add arbitrary number of bytes
-void SHA3::add(const void* data, size_t numBytes)
+void Keccak::add(const void* data, size_t numBytes)
 {
   const uint8_t* current = (const uint8_t*) data;
 
-  // copy data to buffer
   if (m_bufferSize > 0)
   {
     while (numBytes > 0 && m_bufferSize < m_blockSize)
@@ -214,25 +213,27 @@ void SHA3::add(const void* data, size_t numBytes)
 
 
 /// process everything left in the internal buffer
-void SHA3::processBuffer()
+void Keccak::processBuffer()
 {
+  unsigned int blockSize = 200 - 2 * (m_bits / 8);
+
   // add padding
   size_t offset = m_bufferSize;
   // add a "1" byte
-  m_buffer[offset++] = 0x06;
+  m_buffer[offset++] = 1;
   // fill with zeros
-  while (offset < m_blockSize)
+  while (offset < blockSize)
     m_buffer[offset++] = 0;
 
   // and add a single set bit
-  m_buffer[offset - 1] |= 0x80;
+  m_buffer[blockSize - 1] |= 0x80;
 
   processBlock(m_buffer);
 }
 
 
 /// return latest hash as 16 hex characters
-std::string SHA3::getHash()
+std::string Keccak::getHash()
 {
   // process remaining bytes
   processBuffer();
@@ -244,7 +245,6 @@ std::string SHA3::getHash()
   unsigned int hashLength = m_bits / 64;
 
   std::string result;
-  result.reserve(m_bits / 4);
   for (unsigned int i = 0; i < hashLength; i++)
     for (unsigned int j = 0; j < 8; j++) // 64 bits => 8 bytes
     {
@@ -254,7 +254,7 @@ std::string SHA3::getHash()
       result += dec2hex[oneByte & 15];
     }
 
-  // SHA3-224's last entry in m_hash provides only 32 bits instead of 64 bits
+  // Keccak224's last entry in m_hash provides only 32 bits instead of 64 bits
   unsigned int remainder = m_bits - hashLength * 64;
   unsigned int processed = 0;
   while (processed < remainder)
@@ -271,8 +271,8 @@ std::string SHA3::getHash()
 }
 
 
-/// compute SHA3 of a memory block
-std::string SHA3::operator()(const void* data, size_t numBytes)
+/// compute Keccak hash of a memory block
+std::string Keccak::operator()(const void* data, size_t numBytes)
 {
   reset();
   add(data, numBytes);
@@ -280,8 +280,8 @@ std::string SHA3::operator()(const void* data, size_t numBytes)
 }
 
 
-/// compute SHA3 of a string, excluding final zero
-std::string SHA3::operator()(const std::string& text)
+/// compute Keccak hash of a string, excluding final zero
+std::string Keccak::operator()(const std::string& text)
 {
   reset();
   add(text.c_str(), text.size());

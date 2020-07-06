@@ -4,14 +4,14 @@
 // see http://create.stephan-brumme.com/disclaimer.html
 //
 
-// g++ -O3 digest.cpp crc32.cpp md5.cpp sha1.cpp sha256.cpp keccak.cpp sha3.cpp -o digest
+// g++ -O3 digest.cpp src/*.cpp -I ./include -o digest
 
-#include "crc32.h"
-#include "md5.h"
-#include "sha1.h"
-#include "sha256.h"
-#include "keccak.h"
-#include "sha3.h"
+#include "hash-library/crc32.h"
+#include "hash-library/md5.h"
+#include "hash-library/sha1.h"
+#include "hash-library/sha256.h"
+#include "hash-library/keccak.h"
+#include "hash-library/sha3.h"
 
 #include <iostream>
 #include <fstream>
